@@ -46,18 +46,30 @@
     color:#cbb8ff;
     font-size:.8rem;
     letter-spacing:.2em;
-    margin-bottom:14px;
+    margin-bottom:12px;
     text-transform:uppercase;
   }
-  .panel{
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.15);
-    border-radius:16px;
-    padding:14px 16px;
-    backdrop-filter:blur(6px);
-    max-width:520px;
+  .meta-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
     width:100%;
+    max-width:450px;
+    margin-bottom:8px;
+    color:#ffd88a;
+    font-size:.85rem;
+    font-weight:bold;
   }
+  .iconBtn{
+    border:none;
+    border-radius:8px;
+    background:rgba(255,255,255,.14);
+    color:#fff;
+    font-size:1rem;
+    padding:4px 10px;
+    cursor:pointer;
+  }
+  .iconBtn:hover{background:rgba(255,255,255,.26);}
   .stage-bar{
     display:flex;
     justify-content:space-between;
@@ -74,8 +86,10 @@
     background:rgba(255,255,255,.25);
     transition:.2s;
   }
-  .dot.active{background:#fff;box-shadow:0 0 6px #fff;}
-  .dot.cleared{background:#8affc1;}
+  .dot.s1{background:#cd7f32;}
+  .dot.s2{background:#c8c8d8;}
+  .dot.s3{background:#ffd700;box-shadow:0 0 6px #ffd700;}
+  .dot.active{outline:2px solid #fff;outline-offset:2px;}
 
   .stage-title{color:#fff;font-weight:bold;letter-spacing:.05em;}
 
@@ -95,13 +109,15 @@
 
   .stats{
     display:flex;
-    gap:18px;
+    flex-wrap:wrap;
+    gap:14px;
     justify-content:center;
     margin:12px 0 6px;
     color:#fff;
     font-size:.85rem;
   }
   .stats span b{color:#ffd88a;font-size:1rem;}
+  .stats span.danger b{color:#ff6b6b;}
 
   .controls{
     display:flex;
@@ -133,7 +149,7 @@
   .dpad .right{grid-column:3;grid-row:2;}
   .dpad .down{grid-column:2;grid-row:3;}
 
-  .rowbtns{display:flex;gap:10px;}
+  .rowbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
   .rowbtns button{
     border:none;
     border-radius:10px;
@@ -193,6 +209,8 @@
   }
   .winCard h2{margin:0 0 8px;font-size:1.4rem;color:#ffd88a;}
   .winCard p{margin:4px 0;font-size:.9rem;color:#e3d9ff;}
+  .winStars{font-size:2rem;letter-spacing:.15em;margin:10px 0;color:#3a2a4a;text-shadow:0 0 0 #3a2a4a;}
+  .winStars .filled{color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,.8);}
   .winCard button{
     margin-top:16px;
     border:none;
@@ -220,6 +238,11 @@
 <h1>ワールドクロス</h1>
 <div class="subtitle">World Cross &mdash; 二つの世界をわたる謎解き</div>
 
+<div class="meta-bar">
+  <span id="starTotal">★ 0/24</span>
+  <button class="iconBtn" id="muteBtn">🔊</button>
+</div>
+
 <div class="stage-bar">
   <div class="stage-title" id="stageTitle">STAGE 1</div>
   <div class="dots" id="dots"></div>
@@ -233,6 +256,7 @@
 <div class="stats">
   <span>手数 <b id="moveCount">0</b></span>
   <span>切替 <b id="switchCount">0</b></span>
+  <span id="catchStat" class="danger" style="display:none">捕獲 <b id="catchCount">0</b></span>
   <span>現在 <b id="worldName">光の世界</b></span>
 </div>
 
@@ -256,12 +280,16 @@
   「光の世界」と「影の世界」を切り替えます。世界によって壁の位置が変わるので、
   両方の世界をうまく行き来してゴール(★)を目指してください。
   切り替え先の世界で自分のいる場所が壁になっている場合は切り替えられません。
+  後半のステージには、特定の世界にいるときだけ実体化する<b>追跡者(●)</b>が登場します。
+  捕まるとスタート地点からやり直しになるので注意。手数と切替回数が少ないほど★評価が上がります。
 </div>
 
 <div id="winModal">
   <div class="winCard">
     <h2 id="winTitle">クリア!</h2>
+    <div class="winStars" id="winStars"></div>
     <p id="winStats"></p>
+    <p id="winBest"></p>
     <button id="winNextBtn">次のステージへ</button>
   </div>
 </div>
@@ -280,19 +308,22 @@
 
   // Level definitions.
   // wallCols: columns that block movement, per world.
-  // gap: [startRow, endRow] inclusive rows that are OPEN in that world at this column.
-  //      null gap = fully blocked in that world (forces the other world).
+  //   gap: [startRow, endRow] inclusive rows that are OPEN in that world at this column.
+  //        null gap = fully blocked in that world (forces the other world).
+  // chaser: an enemy that only exists (and only moves) while the active world
+  //         matches chaser.world. Touching it sends the player back to start.
+  // par: [threeStarMax, twoStarMax] on (moves + switches). Anything higher is 1 star.
   var LEVELS = [
     {
       name: "はじめの一歩",
-      start: {c:0, r:3}, goal: {c:8, r:3},
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [9, 14],
       wallCols: [
         {col:4, lightGap:[0,6], shadowGap:[2,4]}
       ]
     },
     {
       name: "最初の切り替え",
-      start: {c:0, r:3}, goal: {c:8, r:3},
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [10, 15],
       wallCols: [
         {col:3, lightGap:[3,5], shadowGap:[0,2]},
         {col:6, lightGap:[0,2], shadowGap:[3,5]}
@@ -300,7 +331,7 @@
     },
     {
       name: "行ったり来たり",
-      start: {c:0, r:3}, goal: {c:8, r:3},
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [11, 16],
       wallCols: [
         {col:2, lightGap:[3,5], shadowGap:[0,2]},
         {col:4, lightGap:[0,2], shadowGap:[3,5]},
@@ -309,32 +340,169 @@
     },
     {
       name: "強制ゲート",
-      start: {c:0, r:3}, goal: {c:8, r:3},
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [11, 16],
       wallCols: [
         {col:2, lightGap:null, shadowGap:[2,4]},
         {col:5, lightGap:[2,4], shadowGap:null}
       ]
     },
     {
-      name: "最終試練",
-      start: {c:0, r:3}, goal: {c:8, r:3},
+      name: "上下の迷路",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [20, 25],
       wallCols: [
         {col:2, lightGap:null, shadowGap:[0,1]},
         {col:4, lightGap:[5,6], shadowGap:null},
         {col:6, lightGap:null, shadowGap:[3,4]}
       ]
+    },
+    {
+      name: "垂直の試練",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [14, 19],
+      wallCols: [
+        {col:4, lightGap:null, shadowGap:[5,6]}
+      ]
+    },
+    {
+      name: "追跡開始",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [11, 16],
+      wallCols: [
+        {col:4, lightGap:null, shadowGap:[2,4]}
+      ],
+      chaser: {start:{c:7, r:0}, world:'shadow'}
+    },
+    {
+      name: "最終試練",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [14, 19],
+      wallCols: [
+        {col:2, lightGap:[0,1], shadowGap:null},
+        {col:6, lightGap:null, shadowGap:[3,4]}
+      ],
+      chaser: {start:{c:8, r:0}, world:'light'}
     }
   ];
 
+  var TOTAL_STARS = LEVELS.length * 3;
+
+  // --- persistence -------------------------------------------------------
+  var PROGRESS_KEY = 'worldcross_progress_v1';
+  var MUTE_KEY = 'worldcross_muted_v1';
+
+  function loadProgress(){
+    try{ return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; }
+    catch(e){ return {}; }
+  }
+  function saveProgress(){
+    try{ localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); }catch(e){}
+  }
+  var progress = loadProgress();
+  var muted = false;
+  try{ muted = localStorage.getItem(MUTE_KEY) === '1'; }catch(e){}
+
+  // --- audio ---------------------------------------------------------------
+  var audioCtx = null;
+  function ensureAudio(){
+    if(audioCtx) return audioCtx;
+    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ audioCtx = null; }
+    return audioCtx;
+  }
+  function beep(freq, dur, type, peak, delay){
+    if(muted) return;
+    var a = ensureAudio();
+    if(!a) return;
+    var t0 = a.currentTime + (delay || 0);
+    var osc = a.createOscillator();
+    var gain = a.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(peak || 0.15, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(a.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  }
+  function playMove(){ beep(320, 0.05, 'square', 0.045); }
+  function playSwitchSound(toWorld){
+    if(muted) return;
+    var a = ensureAudio();
+    if(!a) return;
+    var t0 = a.currentTime;
+    var osc = a.createOscillator(), gain = a.createGain();
+    osc.type = 'sine';
+    var f0 = (toWorld === 'shadow') ? 520 : 340;
+    var f1 = (toWorld === 'shadow') ? 260 : 680;
+    osc.frequency.setValueAtTime(f0, t0);
+    osc.frequency.exponentialRampToValueAtTime(f1, t0 + 0.22);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+    osc.connect(gain); gain.connect(a.destination);
+    osc.start(t0); osc.stop(t0 + 0.3);
+  }
+  function playBlocked(){ beep(140, 0.15, 'sawtooth', 0.12); }
+  function playCatch(){ beep(110, 0.35, 'sawtooth', 0.2); }
+  function playWin(stars){
+    var notes = [523.25, 659.25, 783.99, 1046.5];
+    var n = Math.min(stars + 1, notes.length);
+    for(var i = 0; i < n; i++){ beep(notes[i], 0.25, 'triangle', 0.15, i * 0.09); }
+  }
+
+  var muteBtn = document.getElementById('muteBtn');
+  function updateMuteUI(){ muteBtn.textContent = muted ? '🔇' : '🔊'; }
+  muteBtn.addEventListener('click', function(){
+    muted = !muted;
+    try{ localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); }catch(e){}
+    updateMuteUI();
+    if(!muted) ensureAudio();
+  });
+  updateMuteUI();
+
+  // --- particles -----------------------------------------------------------
+  var particles = [];
+  function spawnBurst(px, py, color, count){
+    for(var i = 0; i < (count || 16); i++){
+      var ang = Math.random() * Math.PI * 2;
+      var speed = 60 + Math.random() * 90;
+      particles.push({
+        x: px, y: py,
+        vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed,
+        life: 0, maxLife: 0.4 + Math.random() * 0.3,
+        color: color
+      });
+    }
+  }
+  function updateParticles(dt){
+    for(var i = particles.length - 1; i >= 0; i--){
+      var p = particles[i];
+      p.life += dt;
+      if(p.life >= p.maxLife){ particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vx *= 0.94; p.vy *= 0.94;
+    }
+  }
+  function drawParticles(){
+    particles.forEach(function(p){
+      var t = p.life / p.maxLife;
+      ctx.globalAlpha = 1 - t;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3 * (1 - t) + 1, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // --- game state ------------------------------------------------------
   var cleared = LEVELS.map(function(){ return false; });
   var levelIndex = 0;
-  var player, world, moves, switches, won;
+  var player, world, moves, switches, catches, won, isBlocked, chaser;
+  var visualPlayer = {x:0, y:0};
+  var visualChaser = {x:0, y:0};
+  var shakeT = 0;
 
   function buildBlockedSets(level){
-    // returns function isBlocked(col,row,world) -> bool
     var map = {};
     level.wallCols.forEach(function(w){ map[w.col] = w; });
-    return function(c,r,w){
+    return function(c, r, w){
       var def = map[c];
       if(!def) return false;
       var gap = (w === 'light') ? def.lightGap : def.shadowGap;
@@ -343,7 +511,7 @@
     };
   }
 
-  var isBlocked;
+  function cellCenter(c, r){ return {x: c * TILE + TILE / 2, y: r * TILE + TILE / 2}; }
 
   function loadLevel(idx){
     levelIndex = idx;
@@ -351,27 +519,53 @@
     isBlocked = buildBlockedSets(level);
     player = {c: level.start.c, r: level.start.r};
     world = 'light';
-    moves = 0;
-    switches = 0;
-    won = false;
+    moves = 0; switches = 0; catches = 0; won = false;
+    particles = [];
+
+    var pc = cellCenter(player.c, player.r);
+    visualPlayer.x = pc.x; visualPlayer.y = pc.y;
+
+    if(level.chaser){
+      chaser = {c: level.chaser.start.c, r: level.chaser.start.r, world: level.chaser.world};
+      var cc = cellCenter(chaser.c, chaser.r);
+      visualChaser.x = cc.x; visualChaser.y = cc.y;
+    } else {
+      chaser = null;
+    }
+
     document.getElementById('moveCount').textContent = '0';
     document.getElementById('switchCount').textContent = '0';
+    document.getElementById('catchCount').textContent = '0';
+    document.getElementById('catchStat').style.display = level.chaser ? '' : 'none';
     updateWorldUI();
     updateStageUI();
+    updateStarTotalUI();
     document.getElementById('winModal').classList.remove('show');
-    draw();
+  }
+
+  function starsFor(level, score){
+    if(score <= level.par[0]) return 3;
+    if(score <= level.par[1]) return 2;
+    return 1;
   }
 
   function updateStageUI(){
     document.getElementById('stageTitle').textContent =
-      'STAGE ' + (levelIndex+1) + '  ' + LEVELS[levelIndex].name;
+      'STAGE ' + (levelIndex + 1) + '  ' + LEVELS[levelIndex].name;
     var dotsEl = document.getElementById('dots');
     dotsEl.innerHTML = '';
     LEVELS.forEach(function(_, i){
       var d = document.createElement('div');
-      d.className = 'dot' + (i===levelIndex ? ' active' : '') + (cleared[i] ? ' cleared' : '');
+      var st = progress[i] ? progress[i].stars : 0;
+      d.className = 'dot' + (i === levelIndex ? ' active' : '') + (st > 0 ? ' s' + st : '');
       dotsEl.appendChild(d);
     });
+  }
+
+  function updateStarTotalUI(){
+    var total = 0;
+    LEVELS.forEach(function(_, i){ total += progress[i] ? progress[i].stars : 0; });
+    document.getElementById('starTotal').textContent = '★ ' + total + '/' + TOTAL_STARS;
   }
 
   function updateWorldUI(){
@@ -386,19 +580,57 @@
     flash._t = setTimeout(function(){ flashMsg.classList.remove('show'); }, 900);
   }
 
+  function moveChaser(){
+    if(!chaser || world !== chaser.world) return;
+    var dc = player.c - chaser.c, dr = player.r - chaser.r;
+    if(dc === 0 && dr === 0) return;
+    var opts = [];
+    if(Math.abs(dc) >= Math.abs(dr) && dc !== 0) opts.push([Math.sign(dc), 0]);
+    if(dr !== 0) opts.push([0, Math.sign(dr)]);
+    if(dc !== 0) opts.push([Math.sign(dc), 0]);
+    for(var i = 0; i < opts.length; i++){
+      var nc = chaser.c + opts[i][0], nr = chaser.r + opts[i][1];
+      if(nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+      if(isBlocked(nc, nr, world)) continue;
+      chaser.c = nc; chaser.r = nr;
+      break;
+    }
+  }
+
+  function checkCatch(){
+    if(!chaser || world !== chaser.world) return false;
+    if(chaser.c !== player.c || chaser.r !== player.r) return false;
+    catches++;
+    document.getElementById('catchCount').textContent = catches;
+    playCatch();
+    flash('つかまった!スタートに戻る');
+    spawnBurst(visualPlayer.x, visualPlayer.y, '#ff5050', 26);
+    var level = LEVELS[levelIndex];
+    player.c = level.start.c; player.r = level.start.r;
+    var pc = cellCenter(player.c, player.r);
+    visualPlayer.x = pc.x; visualPlayer.y = pc.y;
+    chaser.c = level.chaser.start.c; chaser.r = level.chaser.start.r;
+    var cc = cellCenter(chaser.c, chaser.r);
+    visualChaser.x = cc.x; visualChaser.y = cc.y;
+    return true;
+  }
+
   function tryMove(dc, dr){
     if(won) return;
     var nc = player.c + dc, nr = player.r + dr;
     if(nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) return;
     if(isBlocked(nc, nr, world)){
-      shakeCanvas();
+      shakeT = 0.22;
+      playBlocked();
       return;
     }
     player.c = nc; player.r = nr;
     moves++;
     document.getElementById('moveCount').textContent = moves;
+    playMove();
+    moveChaser();
+    if(checkCatch()) return;
     checkGoal();
-    draw();
   }
 
   function tryToggleWorld(){
@@ -406,14 +638,18 @@
     var target = (world === 'light') ? 'shadow' : 'light';
     if(isBlocked(player.c, player.r, target)){
       flash('ここでは切り替えられない!');
-      shakeCanvas();
+      shakeT = 0.22;
+      playBlocked();
       return;
     }
     world = target;
     switches++;
     document.getElementById('switchCount').textContent = switches;
     updateWorldUI();
-    draw();
+    playSwitchSound(target);
+    var color = (target === 'light') ? getCss('--light-player') : getCss('--shadow-player');
+    spawnBurst(visualPlayer.x, visualPlayer.y, color, 20);
+    if(checkCatch()) return;
   }
 
   function checkGoal(){
@@ -421,23 +657,34 @@
     if(player.c === g.c && player.r === g.r){
       won = true;
       cleared[levelIndex] = true;
+      var score = moves + switches;
+      var stars = starsFor(LEVELS[levelIndex], score);
+      var prev = progress[levelIndex];
+      var isBest = !prev || score < prev.best;
+      if(!prev || stars > prev.stars || (stars === prev.stars && score < prev.best)){
+        progress[levelIndex] = {stars: stars, best: score};
+        saveProgress();
+      }
       updateStageUI();
-      setTimeout(showWin, 250);
+      updateStarTotalUI();
+      setTimeout(function(){ showWin(stars, score, isBest); }, 250);
     }
   }
 
-  var shakeT = 0;
-  function shakeCanvas(){
-    shakeT = 6;
-  }
-
-  function showWin(){
+  function showWin(stars, score, isBest){
     var isLast = levelIndex === LEVELS.length - 1;
     document.getElementById('winTitle').textContent = isLast ? '全ステージクリア!' : 'ステージクリア!';
-    document.getElementById('winStats').textContent =
-      '手数: ' + moves + ' / 切替: ' + switches + '回';
+    var starsEl = document.getElementById('winStars');
+    var s = '';
+    for(var i = 0; i < 3; i++){ s += (i < stars) ? '<span class="filled">★</span>' : '<span>☆</span>'; }
+    starsEl.innerHTML = s;
+    var statsText = '手数: ' + moves + ' / 切替: ' + switches + '回';
+    if(catches > 0) statsText += ' / 捕獲: ' + catches + '回';
+    document.getElementById('winStats').textContent = statsText;
+    document.getElementById('winBest').textContent = isBest ? '自己ベスト更新!' : '';
     document.getElementById('winNextBtn').textContent = isLast ? 'もう一度最初から' : '次のステージへ';
     document.getElementById('winModal').classList.add('show');
+    playWin(stars);
   }
 
   document.getElementById('winNextBtn').addEventListener('click', function(){
@@ -446,106 +693,30 @@
     loadLevel(isLast ? 0 : levelIndex + 1);
   });
 
-  function draw(){
-    var ox = (shakeT > 0) ? (Math.random()*6-3) : 0;
-    var oy = (shakeT > 0) ? (Math.random()*6-3) : 0;
-    if(shakeT > 0) shakeT--;
-
-    ctx.save();
-    ctx.translate(ox, oy);
-
-    var bg1 = (world==='light') ? getCss('--light-bg1') : getCss('--shadow-bg1');
-    var bg2 = (world==='light') ? getCss('--light-bg2') : getCss('--shadow-bg2');
-    var grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-    grad.addColorStop(0, bg1);
-    grad.addColorStop(1, bg2);
-    ctx.clearRect(-10,-10,canvas.width+20,canvas.height+20);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    // grid lines
-    ctx.strokeStyle = 'rgba(0,0,0,.06)';
-    ctx.lineWidth = 1;
-    for(var x=0;x<=COLS;x++){
-      ctx.beginPath(); ctx.moveTo(x*TILE,0); ctx.lineTo(x*TILE,ROWS*TILE); ctx.stroke();
-    }
-    for(var y=0;y<=ROWS;y++){
-      ctx.beginPath(); ctx.moveTo(0,y*TILE); ctx.lineTo(COLS*TILE,y*TILE); ctx.stroke();
-    }
-
-    var otherWorld = (world==='light') ? 'shadow' : 'light';
-
-    // faint hint of the other world's walls
-    ctx.globalAlpha = 0.22;
-    ctx.fillStyle = (otherWorld==='light') ? getCss('--light-wall') : getCss('--shadow-wall');
-    for(var c=0;c<COLS;c++){
-      for(var r=0;r<ROWS;r++){
-        if(isBlocked(c,r,otherWorld)){
-          ctx.fillRect(c*TILE+3, r*TILE+3, TILE-6, TILE-6);
-        }
-      }
-    }
-    ctx.globalAlpha = 1;
-
-    // solid walls of current world
-    ctx.fillStyle = (world==='light') ? getCss('--light-wall') : getCss('--shadow-wall');
-    for(var c2=0;c2<COLS;c2++){
-      for(var r2=0;r2<ROWS;r2++){
-        if(isBlocked(c2,r2,world)){
-          roundRect(c2*TILE+2, r2*TILE+2, TILE-4, TILE-4, 6);
-          ctx.fill();
-        }
-      }
-    }
-
-    // goal
-    var g = LEVELS[levelIndex].goal;
-    drawStar(g.c*TILE + TILE/2, g.r*TILE + TILE/2, 14, (world==='light') ? '#ff7a1a' : '#ffe08a');
-
-    // player
-    var px = player.c*TILE + TILE/2, py = player.r*TILE + TILE/2;
-    ctx.beginPath();
-    ctx.arc(px, py, 15, 0, Math.PI*2);
-    var pgrad = ctx.createRadialGradient(px-4,py-4,2,px,py,16);
-    if(world === 'light'){
-      pgrad.addColorStop(0,'#fff2c4'); pgrad.addColorStop(1,'#ff9d1f');
-    } else {
-      pgrad.addColorStop(0,'#e6d8ff'); pgrad.addColorStop(1,'#8f4bff');
-    }
-    ctx.fillStyle = pgrad;
-    ctx.shadowColor = (world==='light') ? 'rgba(255,157,31,.7)' : 'rgba(157,107,255,.8)';
-    ctx.shadowBlur = 14;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    ctx.restore();
-
-    if(shakeT > 0) requestAnimationFrame(draw);
-  }
-
+  // --- rendering ---------------------------------------------------------
   function getCss(varName){
     return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
   }
 
-  function roundRect(x,y,w,h,rad){
+  function roundRect(x, y, w, h, rad){
     ctx.beginPath();
-    ctx.moveTo(x+rad,y);
-    ctx.arcTo(x+w,y,x+w,y+h,rad);
-    ctx.arcTo(x+w,y+h,x,y+h,rad);
-    ctx.arcTo(x,y+h,x,y,rad);
-    ctx.arcTo(x,y,x+w,y,rad);
+    ctx.moveTo(x + rad, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rad);
+    ctx.arcTo(x + w, y + h, x, y + h, rad);
+    ctx.arcTo(x, y + h, x, y, rad);
+    ctx.arcTo(x, y, x + w, y, rad);
     ctx.closePath();
   }
 
-  function drawStar(cx,cy,r,color){
+  function drawStar(cx, cy, r, color){
     ctx.save();
-    ctx.translate(cx,cy);
+    ctx.translate(cx, cy);
     ctx.beginPath();
-    for(var i=0;i<5;i++){
-      var ang = -Math.PI/2 + i*(2*Math.PI/5);
-      var ang2 = ang + Math.PI/5;
-      ctx.lineTo(Math.cos(ang)*r, Math.sin(ang)*r);
-      ctx.lineTo(Math.cos(ang2)*r*0.45, Math.sin(ang2)*r*0.45);
+    for(var i = 0; i < 5; i++){
+      var ang = -Math.PI / 2 + i * (2 * Math.PI / 5);
+      var ang2 = ang + Math.PI / 5;
+      ctx.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+      ctx.lineTo(Math.cos(ang2) * r * 0.45, Math.sin(ang2) * r * 0.45);
     }
     ctx.closePath();
     ctx.fillStyle = color;
@@ -555,21 +726,165 @@
     ctx.restore();
   }
 
-  // input
+  function drawChaserSolid(cx, cy, r){
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.beginPath();
+    var spikes = 9;
+    for(var i = 0; i < spikes * 2; i++){
+      var ang = (Math.PI * i) / spikes;
+      var rad = (i % 2 === 0) ? r : r * 0.55;
+      ctx.lineTo(Math.cos(ang) * rad, Math.sin(ang) * rad);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#2a0f1f';
+    ctx.shadowColor = 'rgba(255,60,60,.9)';
+    ctx.shadowBlur = 16;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ff4d4d';
+    ctx.beginPath(); ctx.arc(-4, -2, 2.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(4, -2, 2.3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawChaserHint(cx, cy, r){
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    ctx.strokeStyle = '#ff4d4d';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw(){
+    var ox = 0, oy = 0;
+    if(shakeT > 0){
+      var f = shakeT / 0.22;
+      ox = (Math.random() * 6 - 3) * f;
+      oy = (Math.random() * 6 - 3) * f;
+    }
+
+    ctx.save();
+    ctx.translate(ox, oy);
+
+    var bg1 = (world === 'light') ? getCss('--light-bg1') : getCss('--shadow-bg1');
+    var bg2 = (world === 'light') ? getCss('--light-bg2') : getCss('--shadow-bg2');
+    var grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, bg1);
+    grad.addColorStop(1, bg2);
+    ctx.clearRect(-10, -10, canvas.width + 20, canvas.height + 20);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = 'rgba(0,0,0,.06)';
+    ctx.lineWidth = 1;
+    for(var x = 0; x <= COLS; x++){
+      ctx.beginPath(); ctx.moveTo(x * TILE, 0); ctx.lineTo(x * TILE, ROWS * TILE); ctx.stroke();
+    }
+    for(var y = 0; y <= ROWS; y++){
+      ctx.beginPath(); ctx.moveTo(0, y * TILE); ctx.lineTo(COLS * TILE, y * TILE); ctx.stroke();
+    }
+
+    var otherWorld = (world === 'light') ? 'shadow' : 'light';
+
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = (otherWorld === 'light') ? getCss('--light-wall') : getCss('--shadow-wall');
+    for(var c = 0; c < COLS; c++){
+      for(var r = 0; r < ROWS; r++){
+        if(isBlocked(c, r, otherWorld)){
+          ctx.fillRect(c * TILE + 3, r * TILE + 3, TILE - 6, TILE - 6);
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = (world === 'light') ? getCss('--light-wall') : getCss('--shadow-wall');
+    for(var c2 = 0; c2 < COLS; c2++){
+      for(var r2 = 0; r2 < ROWS; r2++){
+        if(isBlocked(c2, r2, world)){
+          roundRect(c2 * TILE + 2, r2 * TILE + 2, TILE - 4, TILE - 4, 6);
+          ctx.fill();
+        }
+      }
+    }
+
+    var g = LEVELS[levelIndex].goal;
+    drawStar(g.c * TILE + TILE / 2, g.r * TILE + TILE / 2, 14, (world === 'light') ? '#ff7a1a' : '#ffe08a');
+
+    if(chaser){
+      if(world === chaser.world){
+        drawChaserSolid(visualChaser.x, visualChaser.y, 15);
+      } else {
+        drawChaserHint(chaser.c * TILE + TILE / 2, chaser.r * TILE + TILE / 2, 15);
+      }
+    }
+
+    drawParticles();
+
+    var px = visualPlayer.x, py = visualPlayer.y;
+    ctx.beginPath();
+    ctx.arc(px, py, 15, 0, Math.PI * 2);
+    var pgrad = ctx.createRadialGradient(px - 4, py - 4, 2, px, py, 16);
+    if(world === 'light'){
+      pgrad.addColorStop(0, '#fff2c4'); pgrad.addColorStop(1, '#ff9d1f');
+    } else {
+      pgrad.addColorStop(0, '#e6d8ff'); pgrad.addColorStop(1, '#8f4bff');
+    }
+    ctx.fillStyle = pgrad;
+    ctx.shadowColor = (world === 'light') ? 'rgba(255,157,31,.7)' : 'rgba(157,107,255,.8)';
+    ctx.shadowBlur = 14;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+  }
+
+  // --- main loop -----------------------------------------------------------
+  var lastFrameTime = null;
+  function ease(current, target, dt){
+    var k = 1 - Math.pow(0.001, dt);
+    return current + (target - current) * k;
+  }
+  function update(dt){
+    var pc = cellCenter(player.c, player.r);
+    visualPlayer.x = ease(visualPlayer.x, pc.x, dt);
+    visualPlayer.y = ease(visualPlayer.y, pc.y, dt);
+    if(chaser){
+      var cc = cellCenter(chaser.c, chaser.r);
+      visualChaser.x = ease(visualChaser.x, cc.x, dt);
+      visualChaser.y = ease(visualChaser.y, cc.y, dt);
+    }
+    updateParticles(dt);
+    if(shakeT > 0) shakeT = Math.max(0, shakeT - dt);
+  }
+  function frameLoop(now){
+    if(lastFrameTime === null) lastFrameTime = now;
+    var dt = Math.min((now - lastFrameTime) / 1000, 0.05);
+    lastFrameTime = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(frameLoop);
+  }
+
+  // --- input ---------------------------------------------------------------
   document.addEventListener('keydown', function(e){
     switch(e.key){
-      case 'ArrowUp': case 'w': case 'W': tryMove(0,-1); e.preventDefault(); break;
-      case 'ArrowDown': case 's': case 'S': tryMove(0,1); e.preventDefault(); break;
-      case 'ArrowLeft': case 'a': case 'A': tryMove(-1,0); e.preventDefault(); break;
-      case 'ArrowRight': case 'd': case 'D': tryMove(1,0); e.preventDefault(); break;
+      case 'ArrowUp': case 'w': case 'W': tryMove(0, -1); e.preventDefault(); break;
+      case 'ArrowDown': case 's': case 'S': tryMove(0, 1); e.preventDefault(); break;
+      case 'ArrowLeft': case 'a': case 'A': tryMove(-1, 0); e.preventDefault(); break;
+      case 'ArrowRight': case 'd': case 'D': tryMove(1, 0); e.preventDefault(); break;
       case ' ': case 'Enter': tryToggleWorld(); e.preventDefault(); break;
     }
   });
 
-  document.getElementById('btnUp').addEventListener('click', function(){ tryMove(0,-1); });
-  document.getElementById('btnDown').addEventListener('click', function(){ tryMove(0,1); });
-  document.getElementById('btnLeft').addEventListener('click', function(){ tryMove(-1,0); });
-  document.getElementById('btnRight').addEventListener('click', function(){ tryMove(1,0); });
+  document.getElementById('btnUp').addEventListener('click', function(){ tryMove(0, -1); });
+  document.getElementById('btnDown').addEventListener('click', function(){ tryMove(0, 1); });
+  document.getElementById('btnLeft').addEventListener('click', function(){ tryMove(-1, 0); });
+  document.getElementById('btnRight').addEventListener('click', function(){ tryMove(1, 0); });
   document.getElementById('btnSwitch').addEventListener('click', tryToggleWorld);
 
   document.getElementById('btnRestart').addEventListener('click', function(){ loadLevel(levelIndex); });
@@ -581,10 +896,11 @@
   });
   document.getElementById('topBtn').addEventListener('click', function(e){
     e.preventDefault();
-    window.scrollTo({top:0, behavior:'smooth'});
+    window.scrollTo({top: 0, behavior: 'smooth'});
   });
 
   loadLevel(0);
+  requestAnimationFrame(frameLoop);
 })();
 </script>
 
