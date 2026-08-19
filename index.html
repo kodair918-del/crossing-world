@@ -80,8 +80,16 @@
     color:#fff;
     font-size:.9rem;
   }
-  .dots{display:flex;gap:6px;}
+  .dots{
+    display:flex;
+    gap:6px;
+    max-width:170px;
+    overflow-x:auto;
+    padding:3px 2px;
+    scrollbar-width:thin;
+  }
   .dot{
+    flex:0 0 auto;
     width:10px;height:10px;border-radius:50%;
     background:rgba(255,255,255,.25);
     transition:.2s;
@@ -91,7 +99,24 @@
   .dot.s3{background:#ffd700;box-shadow:0 0 6px #ffd700;}
   .dot.active{outline:2px solid #fff;outline-offset:2px;}
 
-  .stage-title{color:#fff;font-weight:bold;letter-spacing:.05em;}
+  .stage-title{color:#fff;font-weight:bold;letter-spacing:.05em;flex:0 0 auto;}
+
+  .select-row{
+    width:100%;
+    max-width:450px;
+    margin-bottom:8px;
+  }
+  #levelSelect{
+    width:100%;
+    background:rgba(255,255,255,.1);
+    color:#fff;
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:8px;
+    padding:7px 8px;
+    font-size:.85rem;
+    font-family:inherit;
+  }
+  #levelSelect option{color:#2a2233;}
 
   #gameWrap{
     position:relative;
@@ -239,8 +264,12 @@
 <div class="subtitle">World Cross &mdash; 二つの世界をわたる謎解き</div>
 
 <div class="meta-bar">
-  <span id="starTotal">★ 0/24</span>
+  <span id="starTotal">★ 0/300</span>
   <button class="iconBtn" id="muteBtn">🔊</button>
+</div>
+
+<div class="select-row">
+  <select id="levelSelect" aria-label="ステージ選択"></select>
 </div>
 
 <div class="stage-bar">
@@ -282,6 +311,7 @@
   切り替え先の世界で自分のいる場所が壁になっている場合は切り替えられません。
   後半のステージには、特定の世界にいるときだけ実体化する<b>追跡者(●)</b>が登場します。
   捕まるとスタート地点からやり直しになるので注意。手数と切替回数が少ないほど★評価が上がります。
+  全100ステージ、上部のプルダウンから好きなステージへジャンプできます。
 </div>
 
 <div id="winModal">
@@ -378,6 +408,803 @@
         {col:6, lightGap:null, shadowGap:[3,4]}
       ],
       chaser: {start:{c:8, r:0}, world:'light'}
+    },
+    {
+      name: "交差する影",
+      start: {c:0, r:1}, goal: {c:8, r:4}, par: [12, 17],
+      wallCols: [
+        {col:4, lightGap:[4,5], shadowGap:[1,2]},
+        {col:6, lightGap:[3,5], shadowGap:[0,1]}
+      ]
+    },
+    {
+      name: "重なる世界",
+      start: {c:0, r:2}, goal: {c:8, r:5}, par: [12, 17],
+      wallCols: [
+        {col:1, lightGap:[2,3], shadowGap:[1,2]}
+      ]
+    },
+    {
+      name: "すれ違い",
+      start: {c:0, r:4}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:5, lightGap:[2,4], shadowGap:[5,6]},
+        {col:7, lightGap:[2,3], shadowGap:[4,6]}
+      ]
+    },
+    {
+      name: "二重の扉",
+      start: {c:0, r:4}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:3, lightGap:[2,3], shadowGap:[0,1]}
+      ]
+    },
+    {
+      name: "反転の間",
+      start: {c:0, r:2}, goal: {c:8, r:4}, par: [11, 16],
+      wallCols: [
+        {col:2, lightGap:[2,4], shadowGap:[2,4]}
+      ]
+    },
+    {
+      name: "交差する影",
+      start: {c:0, r:4}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:2, lightGap:[4,6], shadowGap:[4,5]},
+        {col:5, lightGap:[1,2], shadowGap:[3,4]}
+      ]
+    },
+    {
+      name: "潜む影",
+      start: {c:0, r:3}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:4, lightGap:[4,5], shadowGap:[2,4]}
+      ]
+    },
+    {
+      name: "対の迷路",
+      start: {c:0, r:5}, goal: {c:8, r:5}, par: [11, 16],
+      wallCols: [
+        {col:2, lightGap:[2,4], shadowGap:[4,6]},
+        {col:4, lightGap:[3,4], shadowGap:[0,1]}
+      ]
+    },
+    {
+      name: "裏表の道",
+      start: {c:0, r:5}, goal: {c:8, r:4}, par: [10, 15],
+      wallCols: [
+        {col:2, lightGap:[2,4], shadowGap:[5,6]}
+      ]
+    },
+    {
+      name: "静寂の回廊",
+      start: {c:0, r:5}, goal: {c:8, r:3}, par: [16, 21],
+      wallCols: [
+        {col:1, lightGap:[1,2], shadowGap:[1,3]},
+        {col:2, lightGap:[3,4], shadowGap:[0,1]}
+      ]
+    },
+    {
+      name: "食い違う壁",
+      start: {c:0, r:3}, goal: {c:8, r:1}, par: [13, 18],
+      wallCols: [
+        {col:4, lightGap:[3,5], shadowGap:[4,6]},
+        {col:5, lightGap:[4,5], shadowGap:[1,2]}
+      ]
+    },
+    {
+      name: "遠回り",
+      start: {c:0, r:3}, goal: {c:8, r:1}, par: [11, 16],
+      wallCols: [
+        {col:1, lightGap:[3,5], shadowGap:[3,4]}
+      ]
+    },
+    {
+      name: "裏表の道",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [9, 14],
+      wallCols: [
+        {col:4, lightGap:[2,3], shadowGap:[1,3]}
+      ]
+    },
+    {
+      name: "反転の間",
+      start: {c:0, r:4}, goal: {c:8, r:2}, par: [12, 17],
+      wallCols: [
+        {col:4, lightGap:[0,1], shadowGap:[3,5]}
+      ]
+    },
+    {
+      name: "揺らぐ境界",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [12, 17],
+      wallCols: [
+        {col:1, lightGap:[0,2], shadowGap:[1,2]},
+        {col:3, lightGap:[4,5], shadowGap:[1,2]}
+      ]
+    },
+    {
+      name: "透ける壁",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [9, 14],
+      wallCols: [
+        {col:5, lightGap:[1,3], shadowGap:[3,4]}
+      ]
+    },
+    {
+      name: "近道",
+      start: {c:0, r:5}, goal: {c:8, r:5}, par: [9, 14],
+      wallCols: [
+        {col:2, lightGap:[4,6], shadowGap:[4,6]},
+        {col:5, lightGap:[3,5], shadowGap:[0,1]}
+      ]
+    },
+    {
+      name: "すれ違い",
+      start: {c:0, r:1}, goal: {c:8, r:5}, par: [13, 18],
+      wallCols: [
+        {col:2, lightGap:[3,4], shadowGap:null},
+        {col:7, lightGap:[4,6], shadowGap:null}
+      ]
+    },
+    {
+      name: "影の狭間",
+      start: {c:0, r:5}, goal: {c:8, r:4}, par: [12, 17],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[2,4]},
+        {col:3, lightGap:[2,4], shadowGap:[5,6]},
+        {col:6, lightGap:[3,4], shadowGap:[2,4]}
+      ]
+    },
+    {
+      name: "近道",
+      start: {c:0, r:4}, goal: {c:8, r:2}, par: [13, 18],
+      wallCols: [
+        {col:2, lightGap:[1,2], shadowGap:null},
+        {col:6, lightGap:[0,1], shadowGap:null}
+      ]
+    },
+    {
+      name: "二律の間",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [11, 16],
+      wallCols: [
+        {col:3, lightGap:null, shadowGap:[3,4]},
+        {col:6, lightGap:[1,3], shadowGap:[4,6]}
+      ]
+    },
+    {
+      name: "揺らぐ境界",
+      start: {c:0, r:3}, goal: {c:8, r:4}, par: [13, 18],
+      wallCols: [
+        {col:1, lightGap:[3,4], shadowGap:[2,4]},
+        {col:4, lightGap:null, shadowGap:[0,2]}
+      ]
+    },
+    {
+      name: "迷いの道",
+      start: {c:0, r:1}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:4, lightGap:[0,2], shadowGap:[2,3]},
+        {col:5, lightGap:[0,2], shadowGap:[2,4]},
+        {col:6, lightGap:[3,4], shadowGap:[2,3]}
+      ]
+    },
+    {
+      name: "二律の間",
+      start: {c:0, r:5}, goal: {c:8, r:4}, par: [10, 15],
+      wallCols: [
+        {col:1, lightGap:[4,5], shadowGap:null},
+        {col:3, lightGap:[4,5], shadowGap:null}
+      ]
+    },
+    {
+      name: "潜む影",
+      start: {c:0, r:1}, goal: {c:8, r:2}, par: [15, 20],
+      wallCols: [
+        {col:1, lightGap:[4,6], shadowGap:[5,6]},
+        {col:6, lightGap:null, shadowGap:[4,6]}
+      ]
+    },
+    {
+      name: "交差する影",
+      start: {c:0, r:3}, goal: {c:8, r:5}, par: [11, 16],
+      wallCols: [
+        {col:2, lightGap:[4,5], shadowGap:null},
+        {col:3, lightGap:[3,5], shadowGap:[5,6]},
+        {col:5, lightGap:[5,6], shadowGap:null}
+      ]
+    },
+    {
+      name: "近道",
+      start: {c:0, r:5}, goal: {c:8, r:5}, par: [15, 20],
+      wallCols: [
+        {col:3, lightGap:[2,3], shadowGap:null},
+        {col:4, lightGap:[0,2], shadowGap:null}
+      ]
+    },
+    {
+      name: "薄明の道",
+      start: {c:0, r:4}, goal: {c:8, r:3}, par: [12, 17],
+      wallCols: [
+        {col:3, lightGap:[0,2], shadowGap:[5,6]},
+        {col:6, lightGap:[0,2], shadowGap:null}
+      ]
+    },
+    {
+      name: "対岸の光",
+      start: {c:0, r:4}, goal: {c:8, r:4}, par: [17, 22],
+      wallCols: [
+        {col:2, lightGap:null, shadowGap:[4,5]},
+        {col:6, lightGap:[0,1], shadowGap:null}
+      ]
+    },
+    {
+      name: "反転の間",
+      start: {c:0, r:1}, goal: {c:8, r:5}, par: [14, 19],
+      wallCols: [
+        {col:3, lightGap:[5,6], shadowGap:[2,4]},
+        {col:4, lightGap:[2,4], shadowGap:[3,5]},
+        {col:6, lightGap:null, shadowGap:[2,4]}
+      ]
+    },
+    {
+      name: "裏表の道",
+      start: {c:0, r:5}, goal: {c:8, r:1}, par: [17, 22],
+      wallCols: [
+        {col:1, lightGap:[0,1], shadowGap:[1,2]},
+        {col:2, lightGap:[1,2], shadowGap:[1,3]},
+        {col:5, lightGap:[3,4], shadowGap:null}
+      ]
+    },
+    {
+      name: "境界線",
+      start: {c:0, r:4}, goal: {c:8, r:1}, par: [14, 19],
+      wallCols: [
+        {col:1, lightGap:[0,1], shadowGap:null},
+        {col:5, lightGap:[4,6], shadowGap:[1,3]},
+        {col:7, lightGap:[1,3], shadowGap:null}
+      ]
+    },
+    {
+      name: "食い違う壁",
+      start: {c:0, r:5}, goal: {c:8, r:4}, par: [17, 22],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[0,1]},
+        {col:4, lightGap:null, shadowGap:[1,3]},
+        {col:7, lightGap:null, shadowGap:[2,4]}
+      ]
+    },
+    {
+      name: "対の迷路",
+      start: {c:0, r:2}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:1, lightGap:[3,5], shadowGap:null},
+        {col:3, lightGap:[2,4], shadowGap:null},
+        {col:4, lightGap:[2,4], shadowGap:null}
+      ]
+    },
+    {
+      name: "潜む影",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [11, 16],
+      wallCols: [
+        {col:3, lightGap:[4,5], shadowGap:null},
+        {col:6, lightGap:[2,4], shadowGap:[2,4]},
+        {col:7, lightGap:[2,4], shadowGap:[2,3]}
+      ]
+    },
+    {
+      name: "対岸の光",
+      start: {c:0, r:3}, goal: {c:8, r:2}, par: [10, 15],
+      wallCols: [
+        {col:4, lightGap:[3,4], shadowGap:[4,5]},
+        {col:6, lightGap:[3,4], shadowGap:null}
+      ]
+    },
+    {
+      name: "影の狭間",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [11, 16],
+      wallCols: [
+        {col:1, lightGap:[4,6], shadowGap:null},
+        {col:2, lightGap:[3,5], shadowGap:null},
+        {col:7, lightGap:[2,3], shadowGap:[1,3]}
+      ]
+    },
+    {
+      name: "対の迷路",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [14, 19],
+      wallCols: [
+        {col:2, lightGap:[3,5], shadowGap:null},
+        {col:4, lightGap:[4,6], shadowGap:[3,5]},
+        {col:5, lightGap:[2,3], shadowGap:[4,5]},
+        {col:7, lightGap:[3,5], shadowGap:[4,6]}
+      ]
+    },
+    {
+      name: "重なる世界",
+      start: {c:0, r:5}, goal: {c:8, r:4}, par: [16, 21],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[1,3]},
+        {col:2, lightGap:null, shadowGap:[0,2]},
+        {col:4, lightGap:[3,4], shadowGap:null},
+        {col:7, lightGap:[3,4], shadowGap:null}
+      ]
+    },
+    {
+      name: "揺らぐ境界",
+      start: {c:0, r:5}, goal: {c:8, r:5}, par: [17, 22],
+      wallCols: [
+        {col:2, lightGap:[0,1], shadowGap:[0,2]},
+        {col:6, lightGap:[0,2], shadowGap:[5,6]},
+        {col:7, lightGap:[2,4], shadowGap:null}
+      ]
+    },
+    {
+      name: "迷いの道",
+      start: {c:0, r:1}, goal: {c:8, r:2}, par: [14, 19],
+      wallCols: [
+        {col:1, lightGap:[3,5], shadowGap:null},
+        {col:2, lightGap:[3,4], shadowGap:null},
+        {col:3, lightGap:[4,5], shadowGap:null},
+        {col:7, lightGap:[4,6], shadowGap:[4,6]}
+      ]
+    },
+    {
+      name: "迷いの道",
+      start: {c:0, r:3}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:1, lightGap:[4,6], shadowGap:[0,2]},
+        {col:4, lightGap:[5,6], shadowGap:[2,3]},
+        {col:5, lightGap:[0,2], shadowGap:[0,2]}
+      ]
+    },
+    {
+      name: "折り返し",
+      start: {c:0, r:1}, goal: {c:8, r:1}, par: [17, 22],
+      wallCols: [
+        {col:3, lightGap:null, shadowGap:[2,4]},
+        {col:5, lightGap:[2,4], shadowGap:null},
+        {col:6, lightGap:[4,5], shadowGap:null}
+      ]
+    },
+    {
+      name: "折り返し",
+      start: {c:0, r:4}, goal: {c:8, r:3}, par: [12, 17],
+      wallCols: [
+        {col:4, lightGap:[1,2], shadowGap:[4,5]},
+        {col:5, lightGap:[1,2], shadowGap:[1,3]},
+        {col:6, lightGap:[0,2], shadowGap:[5,6]},
+        {col:7, lightGap:[0,2], shadowGap:null}
+      ]
+    },
+    {
+      name: "対岸の光",
+      start: {c:0, r:2}, goal: {c:8, r:3}, par: [16, 21],
+      wallCols: [
+        {col:2, lightGap:[4,6], shadowGap:null},
+        {col:4, lightGap:[3,5], shadowGap:[4,6]},
+        {col:6, lightGap:[1,3], shadowGap:[0,1]},
+        {col:7, lightGap:[0,1], shadowGap:null}
+      ]
+    },
+    {
+      name: "折り返し",
+      start: {c:0, r:2}, goal: {c:8, r:4}, par: [11, 16],
+      wallCols: [
+        {col:2, lightGap:[2,3], shadowGap:[1,2]},
+        {col:3, lightGap:[1,3], shadowGap:[0,1]},
+        {col:6, lightGap:[3,5], shadowGap:[3,5]}
+      ]
+    },
+    {
+      name: "揺らぐ境界",
+      start: {c:0, r:1}, goal: {c:8, r:2}, par: [14, 19],
+      wallCols: [
+        {col:3, lightGap:[3,5], shadowGap:null},
+        {col:4, lightGap:[4,5], shadowGap:[4,6]},
+        {col:6, lightGap:[4,5], shadowGap:null},
+        {col:7, lightGap:[4,6], shadowGap:null}
+      ]
+    },
+    {
+      name: "透ける壁",
+      start: {c:0, r:1}, goal: {c:8, r:3}, par: [14, 19],
+      wallCols: [
+        {col:1, lightGap:[4,6], shadowGap:null},
+        {col:2, lightGap:[4,6], shadowGap:null},
+        {col:4, lightGap:[5,6], shadowGap:[2,3]},
+        {col:6, lightGap:[3,4], shadowGap:[3,5]}
+      ]
+    },
+    {
+      name: "潜む影",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [13, 18],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[4,6]},
+        {col:2, lightGap:[0,2], shadowGap:[3,5]},
+        {col:7, lightGap:[4,6], shadowGap:null}
+      ]
+    },
+    {
+      name: "隠された道",
+      start: {c:0, r:3}, goal: {c:8, r:1}, par: [13, 18],
+      wallCols: [
+        {col:1, lightGap:[0,2], shadowGap:[4,6]},
+        {col:3, lightGap:[1,2], shadowGap:[1,2]},
+        {col:4, lightGap:[4,6], shadowGap:[1,2]},
+        {col:6, lightGap:[1,2], shadowGap:null}
+      ]
+    },
+    {
+      name: "潜む影",
+      start: {c:0, r:1}, goal: {c:8, r:5}, par: [13, 18],
+      wallCols: [
+        {col:1, lightGap:[1,3], shadowGap:null},
+        {col:3, lightGap:[2,3], shadowGap:null},
+        {col:6, lightGap:[0,2], shadowGap:null}
+      ]
+    },
+    {
+      name: "袋小路",
+      start: {c:0, r:3}, goal: {c:8, r:2}, par: [13, 18],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[0,1]},
+        {col:4, lightGap:[0,1], shadowGap:[0,1]},
+        {col:6, lightGap:[0,2], shadowGap:[0,1]}
+      ]
+    },
+    {
+      name: "境界線",
+      start: {c:0, r:4}, goal: {c:8, r:3}, par: [20, 25],
+      wallCols: [
+        {col:4, lightGap:[3,5], shadowGap:[0,1]},
+        {col:5, lightGap:null, shadowGap:[1,3]},
+        {col:7, lightGap:[5,6], shadowGap:null}
+      ]
+    },
+    {
+      name: "影の狭間",
+      start: {c:0, r:4}, goal: {c:8, r:3}, par: [11, 16],
+      wallCols: [
+        {col:1, lightGap:[3,4], shadowGap:[5,6]},
+        {col:2, lightGap:[3,4], shadowGap:[1,3]},
+        {col:4, lightGap:[3,4], shadowGap:null},
+        {col:7, lightGap:null, shadowGap:[3,4]}
+      ]
+    },
+    {
+      name: "反転の間",
+      start: {c:0, r:2}, goal: {c:8, r:5}, par: [18, 23],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[1,2]},
+        {col:3, lightGap:[4,5], shadowGap:null},
+        {col:7, lightGap:[0,2], shadowGap:null}
+      ]
+    },
+    {
+      name: "隠された道",
+      start: {c:0, r:4}, goal: {c:8, r:2}, par: [19, 24],
+      wallCols: [
+        {col:1, lightGap:[0,2], shadowGap:null},
+        {col:4, lightGap:null, shadowGap:[1,3]},
+        {col:7, lightGap:[5,6], shadowGap:null}
+      ]
+    },
+    {
+      name: "境界線",
+      start: {c:0, r:3}, goal: {c:8, r:5}, par: [14, 19],
+      wallCols: [
+        {col:4, lightGap:[3,4], shadowGap:null},
+        {col:5, lightGap:[3,4], shadowGap:null},
+        {col:7, lightGap:null, shadowGap:[1,2]}
+      ]
+    },
+    {
+      name: "影の狭間",
+      start: {c:0, r:1}, goal: {c:8, r:1}, par: [10, 15],
+      wallCols: [
+        {col:6, lightGap:[4,5], shadowGap:[1,3]}
+      ],
+      chaser: {start:{c:2, r:0}, world:'light'}
+    },
+    {
+      name: "重なる世界",
+      start: {c:0, r:4}, goal: {c:8, r:1}, par: [12, 17],
+      wallCols: [
+        {col:3, lightGap:[0,2], shadowGap:[2,3]}
+      ],
+      chaser: {start:{c:2, r:5}, world:'shadow'}
+    },
+    {
+      name: "重なる世界",
+      start: {c:0, r:4}, goal: {c:8, r:5}, par: [18, 23],
+      wallCols: [
+        {col:2, lightGap:null, shadowGap:[5,6]},
+        {col:5, lightGap:[0,2], shadowGap:null}
+      ],
+      chaser: {start:{c:5, r:5}, world:'light'}
+    },
+    {
+      name: "折り返し",
+      start: {c:0, r:3}, goal: {c:8, r:5}, par: [13, 18],
+      wallCols: [
+        {col:7, lightGap:[3,5], shadowGap:null}
+      ],
+      chaser: {start:{c:1, r:4}, world:'light'}
+    },
+    {
+      name: "重なる世界",
+      start: {c:0, r:4}, goal: {c:8, r:5}, par: [10, 15],
+      wallCols: [
+        {col:6, lightGap:[3,4], shadowGap:[4,5]},
+        {col:7, lightGap:[3,4], shadowGap:[1,3]}
+      ],
+      chaser: {start:{c:6, r:2}, world:'shadow'}
+    },
+    {
+      name: "揺らぐ境界",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [15, 20],
+      wallCols: [
+        {col:4, lightGap:[5,6], shadowGap:[2,4]},
+        {col:6, lightGap:[5,6], shadowGap:[5,6]}
+      ],
+      chaser: {start:{c:2, r:3}, world:'light'}
+    },
+    {
+      name: "遠回り",
+      start: {c:0, r:5}, goal: {c:8, r:2}, par: [12, 17],
+      wallCols: [
+        {col:3, lightGap:[3,4], shadowGap:[5,6]},
+        {col:5, lightGap:[3,5], shadowGap:null}
+      ],
+      chaser: {start:{c:2, r:1}, world:'shadow'}
+    },
+    {
+      name: "二律の間",
+      start: {c:0, r:1}, goal: {c:8, r:2}, par: [10, 15],
+      wallCols: [
+        {col:7, lightGap:[2,3], shadowGap:[5,6]}
+      ],
+      chaser: {start:{c:6, r:0}, world:'shadow'}
+    },
+    {
+      name: "渡り廊下",
+      start: {c:0, r:1}, goal: {c:8, r:3}, par: [12, 17],
+      wallCols: [
+        {col:2, lightGap:[1,3], shadowGap:[1,3]}
+      ],
+      chaser: {start:{c:5, r:0}, world:'light'}
+    },
+    {
+      name: "分岐点",
+      start: {c:0, r:4}, goal: {c:8, r:1}, par: [13, 18],
+      wallCols: [
+        {col:4, lightGap:null, shadowGap:[1,2]}
+      ],
+      chaser: {start:{c:3, r:5}, world:'light'}
+    },
+    {
+      name: "隠された道",
+      start: {c:0, r:4}, goal: {c:8, r:2}, par: [11, 16],
+      wallCols: [
+        {col:6, lightGap:[3,5], shadowGap:[1,2]},
+        {col:7, lightGap:[4,5], shadowGap:[5,6]}
+      ],
+      chaser: {start:{c:7, r:6}, world:'shadow'}
+    },
+    {
+      name: "影の狭間",
+      start: {c:0, r:1}, goal: {c:8, r:2}, par: [11, 16],
+      wallCols: [
+        {col:3, lightGap:[3,5], shadowGap:[0,1]}
+      ],
+      chaser: {start:{c:6, r:1}, world:'light'}
+    },
+    {
+      name: "交錯路",
+      start: {c:0, r:1}, goal: {c:8, r:1}, par: [14, 19],
+      wallCols: [
+        {col:4, lightGap:null, shadowGap:[3,5]}
+      ],
+      chaser: {start:{c:1, r:1}, world:'shadow'}
+    },
+    {
+      name: "二律の間",
+      start: {c:0, r:5}, goal: {c:8, r:5}, par: [12, 17],
+      wallCols: [
+        {col:4, lightGap:[0,2], shadowGap:[4,5]},
+        {col:6, lightGap:[1,3], shadowGap:[2,4]}
+      ],
+      chaser: {start:{c:3, r:2}, world:'light'}
+    },
+    {
+      name: "境界線",
+      start: {c:0, r:4}, goal: {c:8, r:4}, par: [13, 18],
+      wallCols: [
+        {col:4, lightGap:[0,1], shadowGap:[2,4]}
+      ],
+      chaser: {start:{c:5, r:4}, world:'shadow'}
+    },
+    {
+      name: "光の裂け目",
+      start: {c:0, r:4}, goal: {c:8, r:4}, par: [11, 16],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[4,6]}
+      ],
+      chaser: {start:{c:7, r:3}, world:'shadow'}
+    },
+    {
+      name: "袋小路",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [14, 19],
+      wallCols: [
+        {col:4, lightGap:[0,2], shadowGap:null},
+        {col:7, lightGap:[0,1], shadowGap:[2,4]}
+      ],
+      chaser: {start:{c:3, r:6}, world:'light'}
+    },
+    {
+      name: "境界線",
+      start: {c:0, r:1}, goal: {c:8, r:3}, par: [11, 16],
+      wallCols: [
+        {col:3, lightGap:[0,1], shadowGap:[3,5]}
+      ],
+      chaser: {start:{c:1, r:6}, world:'shadow'}
+    },
+    {
+      name: "透ける壁",
+      start: {c:0, r:1}, goal: {c:8, r:2}, par: [10, 15],
+      wallCols: [
+        {col:6, lightGap:[1,3], shadowGap:null},
+        {col:7, lightGap:[2,4], shadowGap:null}
+      ],
+      chaser: {start:{c:6, r:2}, world:'shadow'}
+    },
+    {
+      name: "交錯路",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [9, 14],
+      wallCols: [
+        {col:1, lightGap:[2,3], shadowGap:null}
+      ],
+      chaser: {start:{c:5, r:4}, world:'light'}
+    },
+    {
+      name: "交差する影",
+      start: {c:0, r:5}, goal: {c:8, r:5}, par: [12, 17],
+      wallCols: [
+        {col:1, lightGap:[1,3], shadowGap:[3,4]},
+        {col:2, lightGap:[3,4], shadowGap:[3,4]},
+        {col:5, lightGap:null, shadowGap:[2,4]}
+      ],
+      chaser: {start:{c:3, r:2}, world:'shadow'}
+    },
+    {
+      name: "静寂の回廊",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [15, 20],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[4,6]},
+        {col:6, lightGap:[3,4], shadowGap:null}
+      ],
+      chaser: {start:{c:6, r:5}, world:'shadow'}
+    },
+    {
+      name: "分岐点",
+      start: {c:0, r:2}, goal: {c:8, r:1}, par: [14, 19],
+      wallCols: [
+        {col:1, lightGap:[0,1], shadowGap:[3,5]},
+        {col:3, lightGap:[3,5], shadowGap:[4,6]},
+        {col:7, lightGap:[3,5], shadowGap:null}
+      ],
+      chaser: {start:{c:7, r:6}, world:'light'}
+    },
+    {
+      name: "静寂の回廊",
+      start: {c:0, r:3}, goal: {c:8, r:5}, par: [13, 18],
+      wallCols: [
+        {col:2, lightGap:[0,2], shadowGap:[0,1]},
+        {col:3, lightGap:[0,2], shadowGap:null}
+      ],
+      chaser: {start:{c:1, r:1}, world:'light'}
+    },
+    {
+      name: "渡り廊下",
+      start: {c:0, r:4}, goal: {c:8, r:4}, par: [17, 22],
+      wallCols: [
+        {col:1, lightGap:[0,2], shadowGap:null},
+        {col:3, lightGap:null, shadowGap:[1,2]},
+        {col:6, lightGap:[3,5], shadowGap:[0,2]}
+      ],
+      chaser: {start:{c:3, r:2}, world:'shadow'}
+    },
+    {
+      name: "近道",
+      start: {c:0, r:3}, goal: {c:8, r:3}, par: [9, 14],
+      wallCols: [
+        {col:1, lightGap:[2,4], shadowGap:null},
+        {col:5, lightGap:[1,3], shadowGap:[4,6]},
+        {col:6, lightGap:[2,4], shadowGap:null}
+      ],
+      chaser: {start:{c:3, r:6}, world:'shadow'}
+    },
+    {
+      name: "重なる世界",
+      start: {c:0, r:1}, goal: {c:8, r:2}, par: [18, 23],
+      wallCols: [
+        {col:3, lightGap:[5,6], shadowGap:null},
+        {col:6, lightGap:[1,2], shadowGap:null},
+        {col:7, lightGap:[0,1], shadowGap:[4,6]}
+      ],
+      chaser: {start:{c:7, r:4}, world:'light'}
+    },
+    {
+      name: "残響の間",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [9, 14],
+      wallCols: [
+        {col:1, lightGap:[1,2], shadowGap:null},
+        {col:3, lightGap:[0,2], shadowGap:null}
+      ],
+      chaser: {start:{c:3, r:0}, world:'shadow'}
+    },
+    {
+      name: "迷いの道",
+      start: {c:0, r:1}, goal: {c:8, r:5}, par: [15, 20],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[3,5]},
+        {col:4, lightGap:[2,4], shadowGap:null},
+        {col:6, lightGap:[5,6], shadowGap:null}
+      ],
+      chaser: {start:{c:6, r:3}, world:'light'}
+    },
+    {
+      name: "静寂の回廊",
+      start: {c:0, r:5}, goal: {c:8, r:5}, par: [17, 22],
+      wallCols: [
+        {col:1, lightGap:null, shadowGap:[1,2]},
+        {col:5, lightGap:[3,4], shadowGap:null}
+      ],
+      chaser: {start:{c:3, r:4}, world:'shadow'}
+    },
+    {
+      name: "裏表の道",
+      start: {c:0, r:5}, goal: {c:8, r:3}, par: [13, 18],
+      wallCols: [
+        {col:3, lightGap:[3,5], shadowGap:null},
+        {col:6, lightGap:[0,2], shadowGap:null}
+      ],
+      chaser: {start:{c:5, r:3}, world:'shadow'}
+    },
+    {
+      name: "渡り廊下",
+      start: {c:0, r:1}, goal: {c:8, r:3}, par: [13, 18],
+      wallCols: [
+        {col:2, lightGap:null, shadowGap:[1,3]},
+        {col:7, lightGap:[1,3], shadowGap:null}
+      ],
+      chaser: {start:{c:6, r:4}, world:'shadow'}
+    },
+    {
+      name: "食い違う壁",
+      start: {c:0, r:3}, goal: {c:8, r:2}, par: [14, 19],
+      wallCols: [
+        {col:2, lightGap:[0,1], shadowGap:[4,6]},
+        {col:4, lightGap:[3,4], shadowGap:[0,2]},
+        {col:6, lightGap:[2,4], shadowGap:null}
+      ],
+      chaser: {start:{c:2, r:0}, world:'light'}
+    },
+    {
+      name: "折り返し",
+      start: {c:0, r:4}, goal: {c:8, r:5}, par: [16, 21],
+      wallCols: [
+        {col:3, lightGap:[4,6], shadowGap:null},
+        {col:6, lightGap:[0,1], shadowGap:null}
+      ],
+      chaser: {start:{c:3, r:2}, world:'light'}
+    },
+    {
+      name: "隠された道",
+      start: {c:0, r:2}, goal: {c:8, r:2}, par: [14, 19],
+      wallCols: [
+        {col:1, lightGap:[4,5], shadowGap:null},
+        {col:2, lightGap:[4,6], shadowGap:null},
+        {col:7, lightGap:[5,6], shadowGap:[4,6]}
+      ],
+      chaser: {start:{c:6, r:0}, world:'light'}
     }
   ];
 
@@ -554,11 +1381,31 @@
       'STAGE ' + (levelIndex + 1) + '  ' + LEVELS[levelIndex].name;
     var dotsEl = document.getElementById('dots');
     dotsEl.innerHTML = '';
+    var activeDot = null;
     LEVELS.forEach(function(_, i){
       var d = document.createElement('div');
       var st = progress[i] ? progress[i].stars : 0;
       d.className = 'dot' + (i === levelIndex ? ' active' : '') + (st > 0 ? ' s' + st : '');
+      if(i === levelIndex) activeDot = d;
       dotsEl.appendChild(d);
+    });
+    if(activeDot){
+      dotsEl.scrollLeft = activeDot.offsetLeft - dotsEl.clientWidth / 2 + activeDot.clientWidth / 2;
+    }
+    var sel = document.getElementById('levelSelect');
+    if(sel.value !== String(levelIndex)) sel.value = String(levelIndex);
+  }
+
+  function populateLevelSelect(){
+    var sel = document.getElementById('levelSelect');
+    LEVELS.forEach(function(lvl, i){
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (i + 1) + '. ' + lvl.name;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function(){
+      loadLevel(parseInt(sel.value, 10));
     });
   }
 
@@ -899,6 +1746,7 @@
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
 
+  populateLevelSelect();
   loadLevel(0);
   requestAnimationFrame(frameLoop);
 })();
